@@ -15,3 +15,11 @@ services:
       - /app/node_modules
       # Mount the rest of the files
       - .:/app
+  tests:
+    build:
+      context: .
+      dockerfile: dockerfile.dev
+    volumes:
+      - /app/node_modules
+      - .:/app
+    command: ['npm', 'run', 'test']
