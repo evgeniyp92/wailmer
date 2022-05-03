@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  web:
+    build:
+      # where to pull all the files from
+      context: .
+      # specifying where to go for the dockerfile
+      dockerfile: dockerfile.dev
+    ports:
+      # Map the default port
+      - '3000:3000'
+    volumes:
+      # Leave node_modules alone
+      - /app/node_modules
+      # Mount the rest of the files
+      - .:/app

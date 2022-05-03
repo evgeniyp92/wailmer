@@ -1,0 +1,18 @@
+version: '3'
+
+# service means we are defining two services,
+# which take the form of containers
+services:
+  # redis
+  redis-server:
+    # pull it from docker hub
+    image: 'redis'
+  # node app
+  node-app:
+    # restart on any kind of failure
+    restart: on-failure
+    # use the dockerfile to build it
+    build: .
+    # expose the port
+    ports:
+      - '4001:8081'

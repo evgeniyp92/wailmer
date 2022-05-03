@@ -64,3 +64,70 @@ been passing to docker run
 It also makes starting multiple containers at the same time very easy
 
 ## Adding a Docker Compose file
+
+There is a special syntax in which to write out the yml file
+
+### Steps of docker compose for this project
+
+- Create two containers
+  - redis-server
+    - pull this down from Docker Hub
+  - node-app
+    - make it with the dockerfile in current directory
+    - map port 8081 to 8081
+
+```yml
+version: '3'
+
+# service means we are defining two services,
+# which take the form of containers
+services:
+  # redis
+  redis-server:
+    # pull it from docker hub
+    image: 'redis'
+  # node app
+  node-app:
+    # use the dockerfile to build it
+    build: .
+    # expose the port
+    ports:
+      - '4001:8081'
+```
+
+mapping ports only exposes them to our local machine, containers can still talk
+to each other via docker compose network magic
+
+```javascript
+const client = redis.createClient({
+  host: 'redis-server',
+  port: 6379,
+});
+client.set('visits', 0);
+```
+
+## Running Docker Compose
+
+`docker run myimage` == `docker-compose up`
+
+`docker build .` + `docker run myimage` == `docker-compose up --build`
+
+launch multiple containers in the background with `docker-compose up -d`
+
+## Stopping Docker Compose container
+
+Stop containters with `docker-compose down`
+
+## Maintaining containers with Compose
+
+you can provide a restart policy to containers
+
+levels:
+
+- "no" - don't try to
+- always - try if the container stops for any reason
+- on-failure - try if the container sends a non-zero exit code
+- unless-stopped - always restart unless forcibly stopped
+
+you can run `docker-compose ps` and it will tell you the status of relevant
+containers on your machine that belong to the given docker-compose file
