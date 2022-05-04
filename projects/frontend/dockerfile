@@ -1,0 +1,14 @@
+FROM node:16.15-alpine as builder
+WORKDIR /app
+COPY package.json .
+RUN npm install
+COPY . .
+RUN ["npm", "run", "build"]
+
+# new FROM statements terminate the preceding block
+FROM nginx as server
+# copy /app/build from the builder image to the default nginx share dir
+COPY --from=builder /app/build /usr/share/nginx/html
+# since the default nginx container command is to start we dont have to worry about that
+
+FROM node

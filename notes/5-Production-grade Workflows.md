@@ -120,3 +120,37 @@ that we gave the original command to, and we can't attach to the child process
 
 So we can either execute docker-compose if we dont care about interactivity, or
 spawn the main container and use `docker exec` on it
+
+## Nginx and multistep containers
+
+When a react app is built we dont need the dev server anymore, we need a simple
+web server thats going to server our built website
+
+We will use nginx to set up our built website
+
+We'll use node:alpine, copy package.json, install deps, run npm run build, and
+start nginx
+
+Problem is we only need the deps to do the build, and its a lot of deps. Also
+where the hell are we getting nginx from
+
+It would be really great if we could have two base images, so we can build a
+multistep dockerfile with a build phase and a run phase
+
+We will start alpine node to build the website, then use nginx as a base to copy
+over the result of npm run build and start nginx
+
+```dockerfile
+FROM node:16.15-alpine as builder
+WORKDIR /app
+COPY package.json .
+RUN npm install
+COPY . .
+RUN ["npm", "run", "build"]
+
+# new FROM statements terminate the preceding block
+FROM nginx as server
+# copy /app/build from the builder image to the default nginx share dir
+COPY --from=builder /app/build /usr/share/nginx/html
+# since the default nginx container command is to start we dont have to worry about that
+```
