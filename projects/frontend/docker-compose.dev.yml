@@ -1,0 +1,26 @@
+services:
+  # setup the main web server
+  web:
+    # define build properties
+    build:
+      # use the project root as the cwd
+      context: .
+      # use the dev version of the dockerfile
+      dockerfile: dockerfile.dev
+    # map the dev port internally to 80 outside
+    ports:
+      - '80:3000'
+    # bookmark the containers node_modules folder, and replace everything else
+    volumes:
+      - /app/node_modules
+      - .:/app
+  # set up the same container as a test runner
+  tests:
+    build:
+      context: .
+      dockerfile: dockerfile.dev
+    volumes:
+      - /app/node_modules
+      - .:/app
+    # override the default command from dockerfile.dev
+    command: ['npm', 'run', 'test']

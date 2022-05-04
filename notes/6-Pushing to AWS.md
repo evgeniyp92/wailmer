@@ -112,4 +112,6 @@ for aws its important to expose containers in dockerfiles
 
 `EXPOSE [port number]`
 
-# AWS DOCKER CANNOT HANDLE MORE THAN 1 ARG IN FROM DO NOT PASS 'AS BUILDER'
+# AWS DOCKER CANNOT HANDLE MORE THAN 1 ARG IN FROM -- DO NOT PASS 'AS BUILDER'
+
+use COPY --from=0 instead and leave the first stage unnamed
