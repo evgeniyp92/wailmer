@@ -1,0 +1,62 @@
+version: '3'
+
+services:
+  # nginx
+  nginx:
+    # always restart if you hit an error
+    restart: always
+    build:
+      dockerfile: dockerfile.dev
+      context: ./nginx
+    ports:
+      - '2021:80'
+    depends_on:
+      - api
+      - client
+  # set up a simple postgres service and launch it
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      # set up an env variable so that pg starts up properly
+      - POSTGRES_PASSWORD=postgres_password
+  # set up a simple redis instance and launch it
+  redis:
+    image: 'redis:latest'
+  # set up our server
+  api:
+    build:
+      # use the dockerfile.dev in ./server
+      dockerfile: dockerfile.dev
+      context: ./server
+    volumes:
+      # dont fuck with this folder
+      - /app/node_modules
+      # replace the contents of app with everything in ./server
+      - ./server:/app
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PGUSER=postgres
+      - PGHOST=postgres
+      - PGDATABASE=postgres
+      - PGPASSWORD=postgres_password
+      - PGPORT=5432
+  worker:
+    build:
+      dockerfile: dockerfile.dev
+      context: ./worker
+    volumes:
+      - /app/node_modules
+      - ./worker:/app
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+  client:
+    build:
+      dockerfile: dockerfile.dev
+      context: ./client
+    environment:
+      - WDS_SOCKET_PORT=0
+    volumes:
+      - /app/node_modules
+      - ./client:/app
