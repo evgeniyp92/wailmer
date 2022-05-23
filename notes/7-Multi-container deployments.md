@@ -55,17 +55,17 @@ Since we need a postgres and redis image we need to provide some details
 And we need to provide builds, volumes and env variables to the server app
 
 ```yml
-version: '3'
+version: "3"
 
 services:
   # set up a simple postgres service and launch it
   postgres:
-    image: 'postgres:latest'
+    image: "postgres:latest"
     environment:
       - POSTGRES_PASSWORD=postgress_password
   # set up a simple redis instance and launch it
   redis:
-    image: 'redis:latest'
+    image: "redis:latest"
   # set up our server
   server:
     build:
@@ -90,18 +90,18 @@ having a variable lifted from your computer is useful when you have secrets to
 protect, like keys
 
 ```yml
-version: '3'
+version: "3"
 
 services:
   # set up a simple postgres service and launch it
   postgres:
-    image: 'postgres:latest'
+    image: "postgres:latest"
     environment:
       # set up an env variable so that pg starts up properly
       - POSTGRES_PASSWORD=postgres_password
   # set up a simple redis instance and launch it
   redis:
-    image: 'redis:latest'
+    image: "redis:latest"
   # set up our server
   server:
     build:
@@ -126,18 +126,18 @@ services:
 ### Wiring up the worker
 
 ```yml
-version: '3'
+version: "3"
 
 services:
   # set up a simple postgres service and launch it
   postgres:
-    image: 'postgres:latest'
+    image: "postgres:latest"
     environment:
       # set up an env variable so that pg starts up properly
       - POSTGRES_PASSWORD=postgres_password
   # set up a simple redis instance and launch it
   redis:
-    image: 'redis:latest'
+    image: "redis:latest"
   # set up our server
   server:
     build:
@@ -172,18 +172,18 @@ services:
 after setting up all elements without port mapping
 
 ```yml
-version: '3'
+version: "3"
 
 services:
   # set up a simple postgres service and launch it
   postgres:
-    image: 'postgres:latest'
+    image: "postgres:latest"
     environment:
       # set up an env variable so that pg starts up properly
       - POSTGRES_PASSWORD=postgres_password
   # set up a simple redis instance and launch it
   redis:
-    image: 'redis:latest'
+    image: "redis:latest"
   # set up our server
   api:
     build:
@@ -300,7 +300,7 @@ COPY ./default.conf /etc/nginx/conf.d/default.conf
 ```
 
 ```yml
-version: '3'
+version: "3"
 
 services:
   # nginx
@@ -311,19 +311,19 @@ services:
       dockerfile: dockerfile.dev
       context: ./nginx
     ports:
-      - '2021:80'
+      - "2021:80"
     depends_on:
       - api
       - client
   # set up a simple postgres service and launch it
   postgres:
-    image: 'postgres:latest'
+    image: "postgres:latest"
     environment:
       # set up an env variable so that pg starts up properly
       - POSTGRES_PASSWORD=postgres_password
   # set up a simple redis instance and launch it
   redis:
-    image: 'redis:latest'
+    image: "redis:latest"
   # set up our server
   api:
     build:
@@ -362,7 +362,7 @@ services:
       - ./client:/app
 ```
 
-## Starting up docker compose
+### Starting up docker compose
 
 We got a websocket connection error which is our hot reload capability
 
@@ -378,4 +378,185 @@ client:
   volumes:
     - /app/node_modules
     - ./client:/app
+```
+
+```conf
+	# allow websocket connection
+	location /ws {
+		proxy_pass http://client;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection "Upgrade";
+	}
+```
+
+## Multiple-image CI
+
+### Building and deploying to EBS
+
+The previous way of doing image builds on EBS was suboptimal
+
+This time around we will use a slightly different deployment flow
+
+    - Push code to github
+    - Travis pulls the repo
+    - Travis builds a test image and runs tests
+    - Travis builds a prod image
+    - Travis pushes prod images to docker hub
+    - Travis pushes project to AWS EB
+    - EB pulls images from Docker Hub and deploys them
+
+Docker Hub is hugely important to the web infastructure, and AWS EB integrates
+with Docker Hub very easily
+
+We will basically notify EB there's new images from Docker Hub
+
+The benefit is that we are now no longer dependent on EB to build our images
+
+And once we push up to Docker Hub we can deploy anywhere
+
+** Created production dockerfiles here... **
+
+Building a react app and hosting it on an nginx proxy behind another nginx proxy
+
+The core NGINX server is responsible strictly for routing
+
+The production nginx server will be specifically hosting only the website and on
+port 3000
+
+The reason for using two copies of nginx is its more complete and a more
+accurate representation of real world configurations
+
+With this in mind it is really important to make sure that the nginx server
+hosting the react app is configured to listen on port 3000 and not port 80
+
+nginx conf
+
+```conf
+server {
+	listen 3000;
+	location / {
+		root /usr/share/nginx/html;
+		index index.html index.htm;
+		try_files $uri $uri/ /index.html;
+	}
+}
+```
+
+dockerfile
+
+```dockerfile
+FROM node:16-alpine
+WORKDIR '/app'
+COPY ./package.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+FROM nginx
+EXPOSE 3000
+COPY ./nginx/default.conf etc/nginx/conf.d/default.conf
+COPY --from=0 /app/build /usr/share/nginx/html
+```
+
+set up the app with travis ci here
+
+### building the travis.yml file
+
+    - Specify docker as a dependency
+    - Build a test version of the react project
+    - Run tests
+    - Build prod versions of all projects
+    - Push everything to docker hub
+    - Tell EB to cycle
+
+In this context we will only run tests for the react app but if you have tests
+in other containers you could run them in parallel
+
+```yml
+
+```
+
+**The below is deprecated because of AWS**
+
+Dockerrun.aws.json is kind of like a docker-compose file
+
+EBS actually has no idea how to run containers. It hands off most of the work to
+Elastic Container Services via task definition files.
+
+The Dockerrun kinda sucks so we need to look at Amazon ECS documentation of task
+definitions instead
+
+```json
+{
+  "AWSEBDockerrunVersion": "2",
+  "containerDefinitions": [
+    {
+      "name": "client", // defining the name
+      "image": "evgeniyp92/multi-client:latest",
+      "hostname": "client", // setting up the port mapping and outlining it for AWS
+      "essential": false // essential containers will cause a cascading shutdown on crash
+    },
+    {
+      "name": "server",
+      "image": "evgeniyp92/multi-server:latest",
+      "hostname": "api",
+      "essential": false
+    },
+    {
+      "name": "worker",
+      "image": "evgeniyp92/multi-worker:latest",
+      "hostname": "worker",
+      "essential": false
+    },
+    {
+      "name": "nginx",
+      "image": "evgeniyp92/multi-nginx:latest",
+      "essential": true, // at least one container must be marked as true
+      "portMappings": [
+        {
+          "hostPort": 80,
+          "containerPort": 80
+        }
+      ],
+      "links": ["client", "server"] // explicitly link nginx to the client and server
+    }
+  ]
+}
+```
+
+We are not using the above file and instead using the new Amazon Linux 2 Platform
+
+```dockerfile
+version: "3"
+services:
+  client:
+    image: "evgeniyp92/multi-client:latest"
+    mem_limit: 128m
+    hostname: client
+  server:
+    image: "evgeniyp92/multi-server:latest"
+    mem_limit: 128m
+    hostname: api
+    environment:
+      - REDIS_HOST=$REDIS_HOST
+      - REDIS_PORT=$REDIS_PORT
+      - PGUSER=$PGUSER
+      - PGHOST=$PGHOST
+      - PGDATABASE=$PGDATABASE
+      - PGPASSWORD=$PGPASSWORD
+      - PGPORT=$PGPORT
+  worker:
+    image: "evgeniyp92/multi-worker:latest"
+    mem_limit: 128m
+    hostname: worker
+    environment:
+      - REDIS_HOST=$REDIS_HOST
+      - REDIS_PORT=$REDIS_PORT
+  nginx:
+    image: "evgeniyp92/multi-nginx:latest"
+    mem_limit: 128m
+    hostname: nginx
+    ports:
+      - "80:80"
 ```
