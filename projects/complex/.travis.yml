@@ -1,0 +1,26 @@
+sudo: required
+language: generic
+services:
+  - docker
+
+before_install:
+  # in the case of the travis.yml file, the workdir is the yml file location
+  - docker build -t evgeniyp92/react-test -f ./client/dockerfile.dev ./client
+
+script:
+  # run the test container
+  - docker run -e CI=true evgeniyp92/react-test npm test
+
+after_success:
+  # build the images
+  - docker build -t evgeniyp92/multi-client ./client
+  - docker build -t evgeniyp92/multi-nginx ./nginx
+  - docker build -t evgeniyp92/multi-server ./server
+  - docker build -t evgeniyp92/multi-worker ./worker
+  # retrieve the environment variable then emit it to the command on the right via stdin
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # push the images to docker hub
+  - docker push evgeniyp92/multi-client
+  - docker push evgeniyp92/multi-nginx
+  - docker push evgeniyp92/multi-server
+  - docker push evgeniyp92/multi-worker
