@@ -656,7 +656,7 @@ environment properties
 
 environment properties dont get hidden by default
 
- - REDIS_HOST=[redis elasticache instance](multi-docker-redis.rgcrwq.ng.0001.use1.cache.amazonaws.com:6379)
+ - REDIS_HOST=[redis elasticache instance][multi-docker-redis.rgcrwq.ng.0001.use1.cache.amazonaws.com:6379]
  - REDIS_PORT=6379
  - etc etc etc
 
@@ -715,3 +715,4 @@ AWS wants mem_limits defined for all of the containers in order not to complain
 
 in the case of this application we gave everything 128 mb of memory
 
+**DONE WITH MULTI CONTAINER DEPLOYMENTS WOOOOO**
