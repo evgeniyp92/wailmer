@@ -560,3 +560,158 @@ services:
     ports:
       - "80:80"
 ```
+
+Something that was overlooked was the redis and postgres database, which is by design
+
+### AWS Deployment
+
+#### Why you shouldn't use database containers
+
+While using database containers is great for development, it is not a good idea
+in prod
+
+In the production instance, the elastic beanstalk instance will be hosting the 
+main nginx proxy, the nginx hosting the frontend production files, the express 
+server and the redis worker
+
+Postgres and Redis will be running on AWS, via Elastic Cache and RDS
+
+Using AWS services for ElasticCache over Redis is good because aws maintains
+redis for you, it is super easy to scale, has built in logging and maintenance,
+probably has much better security than what we can provide, and is easier to
+migrate off of EB with if you want to change the hosting solution and methodology
+
+Using RDS is better for all the same reasons as ElasticCache, with the added benefit
+of automatic backups and rollbacks
+
+Bottom line is, running RDS, ElasticCache, DDB is worth it because the monthly bill
+for all of those services is maybe several dollars a month, whereas taking the time
+to learn how to secure those elements and deploy them at the same level as AWS can
+will take up a lot of time and work, which is going to be YOUR time and is going
+to be far more valuable.
+
+AWS still sucks ass to work with though
+
+The next project will have self-managed redis and postgres but for now we're just
+using the AWS services
+
+### AWS VPC and Security Groups
+
+There's some behind the scenes setup for AWS that requires some specialized knowledge
+
+By default the EB instance can't talk with RDS and EC, so we have to create the link
+in AWS
+
+When we created our EBS app it was created in a very specific region. us-east-1
+in our case
+
+For each region we're in we get one default Virtual Private Cloud (VPC), which
+is its own private little network
+
+When we created our app it was assigned to our default VPC
+
+To get our apps to talk to each other we need to create a security group, which
+is just a fancy term for firewall rules.
+
+For our EBS instance, one rule was created in the security group:
+    - Allow any traffic across the world on port 80
+
+But you can create any amount of security groups and rules you want
+
+#### Creating a new security group
+
+We are going to create a security group that allows any traffic from any other
+aws service with the security group
+
+#### RDS Creation
+
+Create a new RDS database with a postgres engine, free tier, set the db identifier,
+username, password. Define the instance config, assign to the default VPC, set
+public access to no, create a new vpc security group, set the default database name, 
+and hit go
+
+#### Creating Elasticache
+
+Create a redis cluster, follow the main obvious and cheap steps
+
+#### Wiring everything up with a security group
+
+Create a new security group with a clear name and description
+
+Add inbound rules to the security group to allow any traffic inside the group
+
+Then go and add all the relevant items to the security group
+
+Add the security group to the redis/EC instance
+
+Add the security group to the RDS instance as well
+
+And finally add the security group to the EB environment containers as well
+
+Once done, need to make sure our containers know how to reach RDS and EC with
+environment variables
+
+To add environment variables go to EBS and click on configuration -> software ->
+environment properties
+
+environment properties dont get hidden by default
+
+ - REDIS_HOST=[redis elasticache instance](multi-docker-redis.rgcrwq.ng.0001.use1.cache.amazonaws.com:6379)
+ - REDIS_PORT=6379
+ - etc etc etc
+
+when you configure environment variables in EBS the variables are available to 
+all containers
+
+we're going to modify out travis.yml file to push our docker-compose to the aws 
+environment
+
+we will need to create an IAM user to push the docker-compose to the aws environment
+
+```yaml
+sudo: required
+language: generic
+services:
+  - docker
+
+before_install:
+  # in the case of the travis.yml file, the workdir is the yml file location
+  - docker build -t evgeniyp92/react-test -f ./client/dockerfile.dev ./client
+
+script:
+  # run the test container
+  - docker run -e CI=true evgeniyp92/react-test npm test
+
+after_success:
+  # build the images
+  - docker build -t evgeniyp92/multi-client ./client
+  - docker build -t evgeniyp92/multi-nginx ./nginx
+  - docker build -t evgeniyp92/multi-server ./server
+  - docker build -t evgeniyp92/multi-worker ./worker
+  # retrieve the environment variable then emit it to the command on the right via stdin
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # push the images to docker hub
+  - docker push evgeniyp92/multi-client
+  - docker push evgeniyp92/multi-nginx
+  - docker push evgeniyp92/multi-server
+  - docker push evgeniyp92/multi-worker
+
+deploy:
+  provider: elasticbeanstalk
+  region: 'us-east-1'
+  app: 'multi-docker'
+  env: 'Multidocker-env'
+  bucket_name: 'elasticbeanstalk-us-east-1-321861476458'
+  bucket_path: 'docker-multi'
+  on:
+    branch: master
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_KEY
+```
+
+#### Setting memory limits in docker
+
+AWS wants mem_limits defined for all of the containers in order not to complain
+
+in the case of this application we gave everything 128 mb of memory
+
