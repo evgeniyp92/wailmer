@@ -206,4 +206,41 @@ spec:
 `kubectl get services` get info about all services
 
 NB if you were running Minikube you'd need to ask for the IP of the VM created
-by Minikube
+by Minikube `minikube ip`
+
+### Detailed breakdown of what happened with the deploys
+
+K8s automatically revives dead/crashed containers
+
+Too much to cover, just rewatch the video
+
+Kube-apiserver is a program dedicated to health and behavior monitoring of nodes
+
+the master has a list of how many containers of what kind are running and should
+be running, and orchestrates multiple nodes, each of which have docker, which do
+their docker thing on their own. master regularly keeps an eye that there's
+enough containers running across all nodes and acts to fix any discrepancies
+
+## Takeaways
+
+- K8s is a system to deploy containerized apps
+- Nodes are individual machines (physical or virtual) that run containers
+- Masters are machines with a set of programs to manage nodes
+- K8s does not build images
+- K8s decides on its own where to run each container by default (although we can
+  instruct it)
+- To deploy something, we update the desired state of the master with a config
+  file
+- The master works constantly to meet the desired state
+
+### Approaches to deployment
+
+- Imperative
+  - Do exactly these steps to arrive at this container setup
+- Declarative
+  - I want x, make it happen
+
+_Kubernetes gives you the tools to do things both ways_
+
+However in this course we'll be trying to use declarative deployment as much as
+possible, because that's the only approach that makes sense in prod
