@@ -32,12 +32,13 @@ An important aspect of K8s if proper configuration of load balancers
 ## K8s in dev and prod
 
 K8s only makes sense if we have different types of containers that we need to
-run
+run over multiple machines
 
 - Use minikube in development
-- Use ECS/EKS for Kubernetes, GKE or do it yourself in prod
+- Use ECS/EKS for Kubernetes, Google Kubernetes Engine or do it yourself in prod
 
-The managed solutions are better for starting out
+The managed solutions are better for starting out, but K8s will give you tighter
+control of your costs and resources as applications get bigger
 
 ### What is minikube
 
@@ -51,26 +52,30 @@ minikube falls away when we move off dev but kubectl will be available in prod
 
 Docker desktop actually supports Kubernetes on macOS now
 
-minikube commands can be ignored and the ip address for visiting resources
-will now be `localhost`
+minikube commands can be ignored and the ip address for visiting resources will
+now be `localhost`
 
 ## Mapping existing knowledge
+
+`kubectl cluster-info` to see that status of K8s
 
 Short term goal is to get the multi-client image running on our local K8s
 cluster running as a container
 
+### In the case of Docker
+
 - In our docker-compose files we described how docker-compose should build an
   image
-- Each entry in the d-c represents a container we want to create
+- One entry per container we want to create
 - Each entry defines the networking requirements (port mapping)
 
-In the case of kubernetes
+### In the case of kubernetes
 
 - K8s expects the images to already be built
 - One config file per _object_ we want to create
-- Must set up all networking manually
+- Must set up all networking manually, without any config helpers
 
-Steps to get a simple container running on our K8s cluster
+### Steps to get a simple container running on our K8s cluster
 
 - Host the image on Docker Hub
 - Make one config file to create the container
