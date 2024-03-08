@@ -159,3 +159,34 @@ containers in pods
 
 `spec/containers` describes the name, image and linked ports of the containers.
 this example is not exhaustive however.
+
+### What's a Service
+
+**Services set up networking in K8s Clusters**
+
+Subtypes of services
+
+- ClusterIP: Covered later
+- NodePort: Exposes a port to the world (don't use in prod, only in dev! (with a
+  few exceptions))
+- LoadBalancer: Covered later
+- Ingress: Covered later
+
+When you make a request, it hits the `kube-proxy`, which then forwards the
+request to the NodePort service, which should have a coupling and route to a
+container inside a pod
+
+```yaml
+# client-node-port.yaml
+spec:
+  type: NodePort
+  ports:
+    # direct all traffic to these ports (see lower)
+    - port: 3050 # port for other pods/containers to use to access a pod
+      targetPort: 3000 # port the pod selected uses to talk in/out
+      nodePort: 31515 # port for servicing http requests from outside (30000-32767, randomly assigned if not specified)
+  selector:
+    # label-selector system
+    # maps to the container with a label of component:web in its metadata
+    component: web
+```
