@@ -190,3 +190,17 @@ spec:
     # maps to the container with a label of component:web in its metadata
     component: web
 ```
+
+### Loading stuff into K8s
+
+#### Feeding config files to K8s
+
+`kubectl apply -f <filename>`
+
+`apply` is a keyword to change the current config of our cluster
+
+`-f` specify a file
+
+`kubectl get pods` get information about all pods
+
+`kubectl get services` get info about all services
