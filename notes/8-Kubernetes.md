@@ -116,3 +116,46 @@ spec:
   selector:
     component: web
 ```
+
+## What this all means
+
+`apiVersion` limits what set of object types we can use
+
+Config files in general are used to create objects, and the `kind` tag describes
+what kind of object you're making. Each object serves a different purpose, like
+running and monitoring containers, networking, etc
+
+- Service - sets up networking
+- Pod - runs a container
+- ReplicaController
+- StatefulSet
+- ComponentStatus
+- ConfigMap
+- Event
+- Endpoints
+- Namespace
+
+Usually you're just gonna decide what you wanna make and figure out the
+apiVersion based on that, i.e. you gotta use `apiVersion` 1 if you want to make
+a Pod. Its a reactionary feature in nature.
+
+### What's a Pod?
+
+You can't just create a container on a cluster in K8s, you must create a pod to
+enclose it
+
+Node/VM -> Pod/Container Group -> Container
+
+A Pod is a grouping of containers that all have a common purpose, or are
+interdependent on each other and must be running together. This means containers
+that, if one crashes, the other cannot continue in any way shape or form.
+
+A pod with a postgres container and a notional logger and backup-manager is a
+good implementation example. If postgres goes down, the logger and
+backup-manager are useless, so it makes sense to group them.
+
+We don't have any tightly integrated containers so will not be grouping
+containers in pods
+
+`spec/containers` describes the name, image and linked ports of the containers.
+this example is not exhaustive however.
