@@ -204,3 +204,6 @@ spec:
 `kubectl get pods` get information about all pods
 
 `kubectl get services` get info about all services
+
+NB if you were running Minikube you'd need to ask for the IP of the VM created
+by Minikube
