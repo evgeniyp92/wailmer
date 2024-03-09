@@ -348,3 +348,19 @@ With a deployment:
 - Good for producterino
 
 We will not be using pods much anymore and will instead use deployments
+
+### Deleting objects
+
+`kubectl delete -f <file>`
+
+this command is imperative in nature, and cant really be helped
+
+(applied the deployment to k8s here)
+
+`kubectl get deployments`
+
+### Services and why to use them
+
+When pods get blown away there is no guarantee they will come back with the same
+ip. Services take care of that by declaring mappings to pods that are not based
+on ips
