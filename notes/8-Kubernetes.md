@@ -364,3 +364,5 @@ this command is imperative in nature, and cant really be helped
 When pods get blown away there is no guarantee they will come back with the same
 ip. Services take care of that by declaring mappings to pods that are not based
 on ips
+
+### Caveats around updating deployments in prod
