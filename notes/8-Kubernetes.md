@@ -127,6 +127,8 @@ running and monitoring containers, networking, etc
 
 - Service - sets up networking
 - Pod - runs a container
+- Deployment - maintains a set of identical pods, ensuring they have the correct
+  configs and that there are the right number of them
 - ReplicaController
 - StatefulSet
 - ComponentStatus
@@ -326,7 +328,23 @@ Events:
   Normal  Pulled     3m2s                  kubelet            Successfully pulled image "stephengrider/multi-worker" in 8.419s (8.419s including waiting)
 ```
 
-### Illegal updates to k8s
+### Illegal updates to k8s pods
 
 K8s catches and will refuse to make updates it considers illegal. It gives you
 detailed printouts of what goes wrong and what you are allowed to do.
+
+### Deployments
+
+With a pod:
+
+- Run a single set of containers
+- Good for one-off dev purposes
+- Rarely used in prod
+
+With a deployment:
+
+- Run n sets of identical pods, monitoring each and updating as necessary
+- Good for dev
+- Good for producterino
+
+We will not be using pods much anymore and will instead use deployments
