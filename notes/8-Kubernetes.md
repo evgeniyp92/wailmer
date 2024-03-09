@@ -244,3 +244,84 @@ _Kubernetes gives you the tools to do things both ways_
 
 However in this course we'll be trying to use declarative deployment as much as
 possible, because that's the only approach that makes sense in prod
+
+### Declarative updates to configuration
+
+Instead of tearing down the nodes and building them back up we can just update
+the config file and pass it to k8s while things are running. The Master will
+find the existing object and figure out the new updates
+
+#### Putting multi-worker onto K8s
+
+Old goal: Get the multi-client image running on local k8s as a container
+
+New goal: Update our existing pod to use the multi-worker image
+
+#### Inspecting pods and containers on k8s
+
+`kubectl describe <object type> <object name>` - prints out tons of info on an
+object
+
+```
+❯ kubectl describe pods client-pod
+Name:             client-pod
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             docker-desktop/192.168.65.3
+Start Time:       Sat, 09 Mar 2024 11:42:05 +0100
+Labels:           component=web
+Annotations:      <none>
+Status:           Running
+IP:               10.1.0.7
+IPs:
+  IP:  10.1.0.7
+Containers:
+  client:
+    Container ID:   docker://9cd8ec3cf1bf16dcae2f8c28b7401d7fd2c056cc0bde2a772e97a5d0f1a6ccbb
+    Image:          stephengrider/multi-worker
+    Image ID:       docker-pullable://stephengrider/multi-worker@sha256:5fbab5f86e6a4d499926349a5f0ec032c42e7f7450acc98b053791df26dc4d2b
+    Port:           3000/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Sat, 09 Mar 2024 11:48:01 +0100
+    Last State:     Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Sat, 09 Mar 2024 11:42:07 +0100
+      Finished:     Sat, 09 Mar 2024 11:47:53 +0100
+    Ready:          True
+    Restart Count:  1
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-xcwz2 (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  kube-api-access-xcwz2:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age                   From               Message
+  ----    ------     ----                  ----               -------
+  Normal  Scheduled  8m58s                 default-scheduler  Successfully assigned default/client-pod to docker-desktop
+  Normal  Pulling    8m57s                 kubelet            Pulling image "stephengrider/multi-client"
+  Normal  Pulled     8m56s                 kubelet            Successfully pulled image "stephengrider/multi-client" in 1.329s (1.329s including waiting)
+  Normal  Killing    3m10s                 kubelet            Container client definition changed, will be restarted
+  Normal  Pulling    3m10s                 kubelet            Pulling image "stephengrider/multi-worker"
+  Normal  Created    3m2s (x2 over 8m56s)  kubelet            Created container client
+  Normal  Started    3m2s (x2 over 8m56s)  kubelet            Started container client
+  Normal  Pulled     3m2s                  kubelet            Successfully pulled image "stephengrider/multi-worker" in 8.419s (8.419s including waiting)
+```
