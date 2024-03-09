@@ -325,3 +325,8 @@ Events:
   Normal  Started    3m2s (x2 over 8m56s)  kubelet            Started container client
   Normal  Pulled     3m2s                  kubelet            Successfully pulled image "stephengrider/multi-worker" in 8.419s (8.419s including waiting)
 ```
+
+### Illegal updates to k8s
+
+K8s catches and will refuse to make updates it considers illegal. It gives you
+detailed printouts of what goes wrong and what you are allowed to do.
