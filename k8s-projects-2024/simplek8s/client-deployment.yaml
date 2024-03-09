@@ -1,12 +1,17 @@
 apiVersion: apps/v1
+# Object type
 kind: Deployment
+# setting the metadata
 metadata:
   name: client-deployment
 spec:
+  # make 1 copy of the spec
   replicas: 1
+  # this is how a deployment knows how to find the pods after they have been made
   selector:
     matchLabels:
       component: web
+  # listing the config of each pod made by this deployment
   template:
     metadata:
       labels:
