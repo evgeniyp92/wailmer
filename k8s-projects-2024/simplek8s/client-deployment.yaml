@@ -6,7 +6,7 @@ metadata:
   name: client-deployment
 spec:
   # make 1 copy of the spec
-  replicas: 5
+  replicas: 1
   # this is how a deployment knows how to find the pods after they have been made
   selector:
     matchLabels:
@@ -19,6 +19,6 @@ spec:
     spec:
       containers:
         - name: client
-          image: stephengrider/multi-worker
+          image: stephengrider/multi-client
           ports:
-            - containerPort: 9999
+            - containerPort: 3000

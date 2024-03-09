@@ -366,3 +366,21 @@ ip. Services take care of that by declaring mappings to pods that are not based
 on ips
 
 ### Caveats around updating deployments in prod
+
+#### Pulling new container images and pushing it to prod
+
+Convincing a deployment to recreate pods with a new image is not easy
+
+If the running config matches the config provided to kubectl, it wont do
+anything
+
+Options:
+
+- Manually delete pods in a deployment (silly)
+- Tag built images with a real version number in the config file (adds extra
+  steps in deployment)
+- Use imperatives to update a deployments image
+
+kubectl command to force a deployment to update its image
+
+`kubectl set image <object-type>/<object-name> <container-name>=<new-image>`
