@@ -23,4 +23,7 @@ spec:
             - containerPort: 5432
           volumeMounts:
             - name: postgres-storage
+              # root path of pgsql
               mountPath: /var/lib/postgresql/data
+              # store the data in a folder called postgres to make pg happy
+              subPath: postgres
