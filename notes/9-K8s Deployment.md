@@ -64,3 +64,20 @@ spec:
     - port: 5000
       targetPort: 5000
 ```
+
+## Persistent Volume Claims
+
+PVC's are basically volumes that are not ephemeral and persist through container
+rebuilds
+
+A volume in K8s is an object that allowes a container to store data at the
+**POD** level
+
+A Persistent Volume Claim and Persistent Volume is not a regular Volume to K8s
+
+Volumes persist through container crashes but not pod issues
+
+PVs and PVCs persist through pod and deployment issues
+
+A PVC is effectively a ticket-granting ticket to get a statically or dynamically
+provisioned persistent volume
