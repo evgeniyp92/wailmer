@@ -95,3 +95,19 @@ for AWS it will be EBS, and often it will be automatically configured by the
 cloud provider
 
 ## Defining Environment Vars
+
+(Reference commits)
+
+## Secrets in K8s
+
+we can run an imperative command to generate a secret, since it would be silly
+to have a secret declared in config files
+
+you also have to create the secret in the production environment when you deploy
+to prod
+
+`kubectl create secret [generic/docker-registry/tls] <secret_name> --from-literal key=value`
+
+the secret gets created in the k8s environment
+
+(of course everything broke, these projects are 5 years old)
