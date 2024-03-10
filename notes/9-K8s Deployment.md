@@ -93,3 +93,5 @@ stored
 
 for AWS it will be EBS, and often it will be automatically configured by the
 cloud provider
+
+## Defining Environment Vars

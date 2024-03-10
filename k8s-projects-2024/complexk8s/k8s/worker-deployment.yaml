@@ -13,6 +13,12 @@ spec:
         component: worker
     spec:
       containers:
-      - name: worker
-        image: stephengrider/multi-worker
-        # no port or service necessary -- no ingress traffic expected
+        - name: worker
+          image: stephengrider/multi-worker
+          # no port or service necessary -- no ingress traffic expected
+          env:
+            # specifying environment vars
+            - name: REDIS_HOST
+              value: redis-cluster-ip-service
+            - name: REDIS_PORT
+              value: "6379"
