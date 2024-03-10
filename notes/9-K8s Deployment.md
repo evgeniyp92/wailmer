@@ -20,3 +20,47 @@ mappings as is (3000:3000)
 ## Applying multiple files with Kubectl
 
 You can apply multiple files by running `kubectl apply -f <folder-with-configs>`
+
+## Colocating deployment configurations
+
+You can consolidate config files into one by separating config items with `---`
+
+It comes down to preference and how you want to think about your k8s deployment
+
+Per-item config files are better for visual grepping and understanding the
+project in the long run
+
+```yaml
+# server-config.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      component: server
+  template:
+    metadata:
+      labels:
+        component: server
+    spec:
+      containers:
+        - name: server
+          image: rallycoding/multi-server
+          ports:
+            - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-cluster-ip-service
+spec:
+  type: ClusterIP
+  selector:
+    component: server
+  ports:
+    - port: 5000
+      targetPort: 5000
+```
