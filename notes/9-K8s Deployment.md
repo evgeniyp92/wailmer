@@ -81,3 +81,15 @@ PVs and PVCs persist through pod and deployment issues
 
 A PVC is effectively a ticket-granting ticket to get a statically or dynamically
 provisioned persistent volume
+
+## Volume Access Modes
+
+- ReadWriteOnce - R/W by a single node
+- ReadOnlyMany - R by many nodes
+- ReadWriteMany - R/W by many nodes
+
+in prod you need to do more work to figure out where your data is gonna be
+stored
+
+for AWS it will be EBS, and often it will be automatically configured by the
+cloud provider
