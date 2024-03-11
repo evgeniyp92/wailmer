@@ -111,3 +111,50 @@ to prod
 the secret gets created in the k8s environment
 
 (of course everything broke, these projects are 5 years old)
+
+## Load Balancers
+
+Load Balancers in the world of K8s are a legacy way of getting network traffic
+into a cluster. A load balancer provides service to a specific set of pods. We
+have two sets of pods we want to expose to the outside world so an LB doesnt
+fit. Also whenever we set up K8s a load balancer will be created thru your cloud
+provider. Some would argue its deprecated but its not clear... Many ways to skin
+a cat etc etc
+
+## Configuring Ingress Servers
+
+There are several implementations of an ingress, we will be using an nginx
+ingress server
+
+NB we are using `ingress-nginx`, a community project (led by K8s, endorsed and
+backed by them too). We are **NOT** using `kubernetes-ingress`, a project led by
+nginx.
+
+Setup of ingress-nginx changes depending on your environment
+
+In the course we're gonna set up local ingress and GC ingress
+
+The ingress config is an object that has a set of config rules describing
+traffic routing.
+
+The ingress controller watches for changes to the ingress config and updates the
+'thing' that handles traffic
+
+And then we have the actual 'thing' that handles traffic -- the traffic router
+
+In this particular project, the ingress controller and the traffic router is one
+and the same -- nginx
+
+## Google Cloud implementation
+
+The ingress config will be fed to the controller and the nginx pod, but a
+separate load balancer will be made for us. By default when nginx is set up a
+default-backend pod will be set up for health checks and other things. Ideally
+this should be replaced with an Express API server
+
+You don't want to roll your own nginx load balancer because the custom project
+has a lot of custom code that makes it aware it's in a k8s cluster.
+
+One perk is that the community project can connect to specific pods and doesnt
+have to go to the ClusterIP. This enables things like sticky sessions (?) and
+other things.
