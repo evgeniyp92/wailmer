@@ -145,8 +145,6 @@ And then we have the actual 'thing' that handles traffic -- the traffic router
 In this particular project, the ingress controller and the traffic router is one
 and the same -- nginx
 
-## Google Cloud implementation
-
 The ingress config will be fed to the controller and the nginx pod, but a
 separate load balancer will be made for us. By default when nginx is set up a
 default-backend pod will be set up for health checks and other things. Ideally
@@ -164,3 +162,11 @@ link to set up ingress controller locally
 ```
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.0/deploy/static/provider/cloud/deploy.yaml
 ```
+
+Now that the ingress is up the project is complete and we can move on
+
+NB: There is a kubernetes dashboard available
+
+`https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/`
+
+## Google Cloud implementation
