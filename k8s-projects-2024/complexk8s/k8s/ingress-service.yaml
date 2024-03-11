@@ -6,10 +6,38 @@ metadata:
     nginx.ingress.kubernetes.io/use-regex: "true"
     # decouple routing to server
     nginx.ingress.kubernetes.io/rewrite-target: /$1
+    # specify the cluster issuer
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # force https
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
+  # tls configuration
+  tls:
+    - hosts:
+        - myapp.com
+        - www.myapp.com
+      secretName: yourdomain-com-tls
   ingressClassName: nginx
   rules:
-    - http:
+    - host: myapp.com
+      http:
+        paths:
+          - path: /?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: client-cluster-ip-service
+                port:
+                  number: 3000
+          - path: /api/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: server-cluster-ip-service
+                port:
+                  number: 5000
+    - host: www.myapp.com
+      http:
         paths:
           - path: /?(.*)
             pathType: ImplementationSpecific

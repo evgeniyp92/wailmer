@@ -242,4 +242,123 @@ https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/cre
 
 -- Skipped, not relevant and likely outdated
 
-## HTTPS
+## HTTPS on K8s
+
+General steps:
+
+Create an A and CNAME record that point to the ip address of the purchased
+domain
+
+`@-A-1H-<ipv4>` `www-CNAME-1H-<domain-name.com>`
+
+Next, install cert-manager `https://cert-manager.io/docs/installation/`
+
+Create a Certificate object and Issuer object
+
+```yaml
+# https://docs.cert-manager.io/en/latest/tasks/issuers/setup-acme/index.html#creating-a-basic-acme-issuer
+# Issuer -- issuer.yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  # tell the issuer to reach out to letsencrypt
+  name: letsencrypt-prod
+spec:
+  acme:
+    # server to hit
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # should be your personal email -- LE requirement
+    email: 'test@test.com'
+    privateKeySecretRef:
+      # helper name for the exchange process
+      name: letsencrypt-prod
+    solvers:
+      - http01:
+        ingress:
+          class: nginx
+```
+
+```yaml
+# https://cert-manager.io/docs/tutorials/acme/http-validation/#issuing-an-acme-certificate-using-http-validation
+# Certificate -- certificate.yaml
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: yourdomain-com-tls
+spec:
+  secretName: yourdomain-com
+  issuerRef:
+    # make sure these match the issuer.yaml
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: yourdomain.com
+  dnsNames:
+    - yourdomain.com
+    - www.yourdomain.com
+```
+
+cert-manager automatically finds these files and runs everything
+
+Last step is to reconfigure the ingress (after certificate retrieved)
+
+```yaml
+# ingress-serice.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-service
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+    # decouple routing to server
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    # specify the cluster issuer
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # force https
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+spec:
+  # tls configuration
+  tls:
+    - hosts:
+        - myapp.com
+        - www.myapp.com
+      secretName: yourdomain-com-tls
+  ingressClassName: nginx
+  rules:
+    - host: myapp.com
+      http:
+        paths:
+          - path: /?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: client-cluster-ip-service
+                port:
+                  number: 3000
+          - path: /api/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: server-cluster-ip-service
+                port:
+                  number: 5000
+    - host: www.myapp.com
+      http:
+        paths:
+          - path: /?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: client-cluster-ip-service
+                port:
+                  number: 3000
+          - path: /api/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: server-cluster-ip-service
+                port:
+                  number: 5000
+```
+
+If `kubectl get certificates` gives no result, creating and deploying the
+ingress manifest should fix it
