@@ -158,3 +158,9 @@ has a lot of custom code that makes it aware it's in a k8s cluster.
 One perk is that the community project can connect to specific pods and doesnt
 have to go to the ClusterIP. This enables things like sticky sessions (?) and
 other things.
+
+link to set up ingress controller locally
+
+```
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.0/deploy/static/provider/cloud/deploy.yaml
+```
