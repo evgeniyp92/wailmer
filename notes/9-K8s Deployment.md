@@ -239,3 +239,7 @@ https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/cre
 ```
 
 ## Google Cloud implementation
+
+-- Skipped, not relevant and likely outdated
+
+## HTTPS
